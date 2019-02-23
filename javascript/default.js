@@ -46,17 +46,31 @@
         });
         links.forEach(function(hr) {
             console.log(hr);
-            sleep(100);
+            sleep(200);
             var day_url = location.href + hr;
             var day_html = $.ajax({
                 url: day_url,
                 async: false,
                 dataType: 'html',
-            }).done(function(data) {
-                for (key in duels) {
-                    duels[key]['win_count'] += +($(data).find(`.top_data_${key}record .data_count_win`).text());
-                    duels[key]['lose_count'] += +($(data).find(`.top_data_${key}record .data_count_lose`).text());
+            }).success(function(data, status, xhr) {
+                if (xhr.status === 200) {
+                    var error_text = $(data).find('#container p').text();
+
+                    if (error_text == "短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。") {
+                        throw new Error('短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。');
+                    } else if (error_text == "不明なエラーが発生しました。") {
+                        throw new Error('短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。');
+                    }
+
+                    for (key in duels) {
+                        duels[key]['win_count'] += +($(data).find(`.top_data_${key}record .data_count_win`).text());
+                        duels[key]['lose_count'] += +($(data).find(`.top_data_${key}record .data_count_lose`).text());
+                    }
+                } else {
+                    throw new Error('アクセス制限中です、しばらくしてからご利用ください');
                 }
+            }).error(function(data, status, xhr) {
+                throw new Error('アクセス制限中です、しばらくしてからご利用ください');
             });
         });
 
@@ -71,6 +85,6 @@
         alert(alert_text);
     } catch (e) {
         console.log(e.message);
-        alert("Error");
+        alert(e.message);
     }
 });
