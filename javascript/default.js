@@ -91,8 +91,8 @@
         });
         links.forEach(function(hr) {
             console.log(hr);
-            sleep(1000);
-            var day_url = location.href + hr;
+            sleep(2000);
+            var day_url = "https://3594t.net/members/history/" + hr;
             var day_html = $.ajax({
                 url: day_url,
                 async: false,
