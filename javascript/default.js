@@ -83,7 +83,7 @@
         });
         links.forEach(function(hr) {
             console.log(hr);
-            sleep(200);
+            sleep(1000);
             var day_url = location.href + hr;
             var day_html = $.ajax({
                 url: day_url,
