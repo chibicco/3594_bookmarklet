@@ -49,11 +49,11 @@
         dispLoading("集計中<br>1~2分かかります、そのままお待ちください");
     }
 )(function($) {
-    try {
-        var removeLoading = function() {
-            var s = $("#bookmarklet_loading").remove();
-        }
+    var removeLoading = function() {
+        var s = $("#bookmarklet_loading").remove();
+    }
 
+    try {
         var sleep = function(waitMsec) {
             var startMsec = new Date();
             while (new Date() - startMsec < waitMsec)
@@ -131,7 +131,9 @@
 
         alert(alert_text);
     } catch (e) {
+        removeLoading();
         console.log(e.message);
+
         alert(e.message);
     }
 });
