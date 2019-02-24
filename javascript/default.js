@@ -60,6 +60,10 @@
                 ;
         }
 
+        if (!confirm('集計を開始しますか？(1~2分かかります、そのままお待ちください)')) {
+            throw new Error("キャンセルしました");
+        }
+
         var alert_text = "";
         var duels = {
             nationwide: {
