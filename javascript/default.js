@@ -1,14 +1,51 @@
 (function(f, s) {
+        var dispLoading = function(msg) {
+            if (msg == undefined) {
+                msg = "";
+            }
+
+            var dispMsg = "<div class='bookmarklet_loading_msg'>" + msg + "</div>";
+            if ($("#bookmarklet_loading").length == 0) {
+                console.log($("#bookmarklet_loading"));
+                $("body").find('#wrap').append("<div id='bookmarklet_loading'>" + dispMsg + "</div>");
+
+                $("#bookmarklet_loading").css({
+                    "display": "table",
+                    "width": "100%",
+                    "height": "100%",
+                    "position": "fixed",
+                    "top": "0",
+                    "left": "0",
+                    "background-color": "#fff",
+                    "opacity": "0.8"
+                });
+
+                $("#bookmarklet_loading").find(".bookmarklet_loading_msg").css({
+                    "display": "table-cell",
+                    "text-align": "center",
+                    "vertical-align": "middle",
+                    "padding-top": "140px",
+                    "background": "url('https://chibicco.github.io/3594_bookmarklet/image/gif-load.gif') center center no-repeat"
+                });
+            }
+        }
+
         s = document.createElement("script");
         s.src = "//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js";
         s.onload = function() {
             f(jQuery.noConflict(true))
         }
         ;
-        document.body.appendChild(s)
+        document.body.appendChild(s);
+
+        dispLoading("集計中<br>1~2分かかります、そのままお待ちください");
     }
 )(function($) {
     try {
+        var removeLoading = function() {
+            var s = $("#bookmarklet_loading").remove();
+        }
+
         var sleep = function(waitMsec) {
             var startMsec = new Date();
             while (new Date() - startMsec < waitMsec)
@@ -81,6 +118,8 @@
             var win_per = win_count / (win_count + lose_count);
             alert_text += `${title} 勝ち:${win_count} 負け:${lose_count} 勝率:${win_per.toFixed(3)}\n`;
         }
+
+        removeLoading();
 
         alert(alert_text);
     } catch (e) {
