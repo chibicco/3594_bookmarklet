@@ -60,7 +60,7 @@
                 ;
         }
 
-        if (!confirm('集計を開始しますか？(1~2分かかります、そのままお待ちください)')) {
+        if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
             throw new Error("キャンセルしました");
         }
 
@@ -123,10 +123,10 @@
                         duels[key]['lose_count'] += +(lose_count);
                     }
                 } else {
-                    throw new Error('アクセス制限中です、しばらくしてからご利用ください');
+                    throw new Error('アクセス制限中です、しばらくしてからご利用ください。');
                 }
             }).error(function(data, status, xhr) {
-                throw new Error('アクセス制限中です、しばらくしてからご利用ください');
+                throw new Error('アクセス制限中です、しばらくしてからご利用ください。');
             });
         });
 
