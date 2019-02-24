@@ -112,8 +112,15 @@
                     }
 
                     for (key in duels) {
-                        duels[key]['win_count'] += +($(data).find(`.top_data_${key}record .data_count_win`).text());
-                        duels[key]['lose_count'] += +($(data).find(`.top_data_${key}record .data_count_lose`).text());
+                        var win_count = $(data).find(`.top_data_${key}record .data_count_win`).text();
+                        var lose_count = $(data).find(`.top_data_${key}record .data_count_lose`).text();
+
+                        if (win_count.length == 0 && lose_count.length == 0) {
+                            throw new Error('項目の取得に失敗しました。しばらくしてからご利用ください。');
+                        }
+
+                        duels[key]['win_count'] += +(win_count);
+                        duels[key]['lose_count'] += +(lose_count);
                     }
                 } else {
                     throw new Error('アクセス制限中です、しばらくしてからご利用ください');
