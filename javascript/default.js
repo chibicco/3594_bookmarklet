@@ -135,7 +135,7 @@
     for (var i = 0; i < days.length; i++) {
         deferred = deferred.then(function(i) {
             return function() {
-                return $.when(api(days[i]), wait(2000));
+                return $.when(api(days[i]), wait(2500));
             }
         }(i)).done(function(data, b) {
             console.log($(data).find('h2').text());
