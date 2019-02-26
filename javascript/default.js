@@ -56,10 +56,17 @@
 
                 $("#wrap").append("<div id='bookmarklet_loading'>" + dispMsg + "</div>");
 
+                var ua = navigator.userAgent;
+                var width = "100%";
+                var height = "100%";
+                if (ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
+                    width = "200%";
+                    height = "200%";
+                }
                 $("#bookmarklet_loading").css({
                     "display": "table",
-                    "width": "100%",
-                    "height": "100%",
+                    "width": width,
+                    "height": height,
                     "position": "fixed",
                     "top": "0",
                     "left": "0",
