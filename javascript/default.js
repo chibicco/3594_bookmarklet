@@ -83,7 +83,19 @@
                 });
             }
             d.resolve();
-        }, 100);
+        }, 10);
+        return d.promise();
+    }
+
+    function updateLoading(now_count, max_count) {
+        var d = $.Deferred();
+        setTimeout(function() {
+            if ($("#bookmarklet_loading").length > 0) {
+                var per = (now_count / max_count * 100).toFixed(0);
+                $("#bookmarklet_loading").find(".bookmarklet_loading_msg").text(`loading ${per}%`);
+            }
+            d.resolve();
+        }, 20);
         return d.promise();
     }
 
@@ -142,7 +154,7 @@
     for (var i = 0; i < days.length; i++) {
         deferred = deferred.then(function(i) {
             return function() {
-                return $.when(api(days[i]), wait(2500));
+                return $.when(api(days[i]), updateLoading(i + 1, days.length), wait(2500));
             }
         }(i)).done(function(data, b) {
             console.log($(data).find('h2').text());
