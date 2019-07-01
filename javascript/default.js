@@ -7,8 +7,10 @@
         document.body.appendChild(s);
     }
 )(function($, undefined) {
+    var script_version = "script version 1.0.0"
+
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
-        alert("キャンセルしました");
+        alert(`キャンセルしました\n${script_version}`);
         return;
     }
 
@@ -169,8 +171,8 @@
             var win_count = duels[key]['win_count'];
             var lose_count = duels[key]['lose_count'];
             var title = duels[key]['title'];
-            var win_per = win_count / (win_count + lose_count);
-            alert_text += `${title} 勝ち:${win_count} 負け:${lose_count} 勝率:${win_per.toFixed(3)}\n`;
+            var win_per = win_count / (win_count + lose_count) * 100;
+            alert_text += `${title} 勝ち:${win_count} 負け:${lose_count} 勝率:${win_per.toFixed(1)}\n`;
         }
         alert(alert_text);
     }).fail(function(e) {
