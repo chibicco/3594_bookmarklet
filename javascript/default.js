@@ -61,7 +61,7 @@
                 var ua = navigator.userAgent;
                 var width = "100%";
                 var height = "100%";
-                if (ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
+                if (ua.indexOf('iPad') || ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
                     width = "200%";
                     height = "200%";
                 }
