@@ -7,7 +7,7 @@
     document.body.appendChild(s);
 }
 )(function ($, undefined) {
-    var scriptVersion = "script version 1.1.0"
+    var scriptVersion = "script version 1.1.0";
     var days = [];
     var duels = {
         nationwide: {
@@ -30,12 +30,34 @@
             winCount: 0,
             loseCount: 0
         }
-    }
+    };
+    var yourPlayList = [];
 
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
         alert(`キャンセルしました\n${scriptVersion}`);
         return;
     }
+
+    // 月毎に対象日を取得する
+    $('#history').find('.title_calendar').each(function (e) {
+        var h = {
+            title: '',
+            class: '',
+            day_urls: []
+        }
+        // 2020年5月
+        h['title'] = $(this).text();
+        // calendar_202005 classの取得
+        h['class'] = $(this).parent().parent().children(".calendar").attr("class").split(' ').pop();
+        
+        var play_days = $(this).parent().parent().children(".calendar").find('.play_day a');
+        play_days.each(function () {
+            // daily?y=2020&m=5&d=24            
+            h['day_urls'].push($(this).attr('href').replace(/^\.\//, ''));
+        });
+
+        yourPlayList.push(h);
+    });    
 
     function setDays() {
         var d = $("[class^='calendar calendar_']").find('.play_day a');
