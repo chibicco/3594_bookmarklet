@@ -73,7 +73,8 @@
                     "top": "0",
                     "left": "0",
                     "background-color": "#fff",
-                    "opacity": "0.8"
+                    "opacity": "0.8",
+                    "z-index": 2001
                 });
 
                 $("#bookmarklet_loading").find(".bookmarklet_loading_msg").css({
