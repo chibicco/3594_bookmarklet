@@ -59,9 +59,14 @@
                 $("#wrap").append("<div id='bookmarklet_loading'>" + dispMsg + "</div>");
 
                 var ua = navigator.userAgent;
-                var width = "100%";
-                var height = "100%";
-                if (ua.indexOf('iPad') || ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
+                var width = $(window).width();
+                var height = $(window).height();
+                if ((ua.indexOf('iPhone') > 0 || ua.indexOf('Android') > 0) && ua.indexOf('Mobile') > 0) {
+                    // スマートフォン用処理
+                    width = "200%";
+                    height = "200%";
+                } else if (ua.indexOf('iPad') > 0 || ua.indexOf('Android') > 0) {
+                    // タブレット用処理
                     width = "200%";
                     height = "200%";
                 }
