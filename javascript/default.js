@@ -8,7 +8,6 @@
 }
 )(function ($, undefined) {
     var scriptVersion = "script version 1.1.0";
-    var days = [];
     var duels = {
         nationwide: {
             title: '全国',
@@ -32,6 +31,7 @@
         }
     };
     var yourPlayList = [];
+    var yourPlayTotalDayCount = 0;
 
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
         alert(`キャンセルしました\n${scriptVersion}`);
@@ -49,23 +49,16 @@
         h['title'] = $(this).text();
         // calendar_202005 classの取得
         h['class'] = $(this).parent().parent().children(".calendar").attr("class").split(' ').pop();
-        
+
         var play_days = $(this).parent().parent().children(".calendar").find('.play_day a');
         play_days.each(function () {
-            // daily?y=2020&m=5&d=24            
+            // daily?y=2020&m=5&d=24
             h['day_urls'].push($(this).attr('href').replace(/^\.\//, ''));
+            yourPlayTotalDayCount++;
         });
 
         yourPlayList.push(h);
-    });    
-
-    function setDays() {
-        var d = $("[class^='calendar calendar_']").find('.play_day a');
-        d.each(function () {
-            days.push($(this).attr('href').replace(/^\.\//, ''));
-        });
-    }
-    setDays();
+    });
 
     function dispLoading() {
         var d = $.Deferred();
@@ -178,14 +171,20 @@
     var deferred = execute.then(function () {
         dispLoading()
     });
-    for (var i = 0; i < days.length; i++) {
-        deferred = deferred.then(function (i) {
-            return function () {
-                return $.when(api(days[i]), updateLoading(i + 1, days.length), wait(2500));
-            }
-        }(i)).done(function (data, b) {
-            console.log($(data).find('h2').text());
-        });
+
+    var yourPlayTotalDayCountNumerator = 0;
+    for (var y = 0; y < yourPlayList.length; y++) {
+        var days = yourPlayList[y]['day_urls'];
+        for (var i = 0; i < days.length; i++) {
+            deferred = deferred.then(function (days, i) {
+                return function () {
+                    yourPlayTotalDayCountNumerator++;
+                    return $.when(api(days[i]), updateLoading(yourPlayTotalDayCountNumerator, yourPlayTotalDayCount), wait(2500));
+                }
+            }(days, i)).done(function (data, b) {
+                console.log($(data).find('h2').text());
+            });
+        }
     }
 
     deferred.always(function () {
