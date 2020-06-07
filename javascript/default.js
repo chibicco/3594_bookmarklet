@@ -7,7 +7,7 @@
         document.body.appendChild(s);
     }
 )(function($, undefined) {
-    var script_version = "script version 1.0.0"
+    var script_version = "script version 1.1.0"
 
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
         alert(`キャンセルしました\n${script_version}`);
