@@ -7,38 +7,35 @@
     document.body.appendChild(s);
 }
 )(function ($, undefined) {
-    var script_version = "script version 1.1.0"
-
-    if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
-        alert(`キャンセルしました\n${script_version}`);
-        return;
-    }
-
+    var scriptVersion = "script version 1.1.0"
+    var days = [];
     var duels = {
         nationwide: {
             title: '全国',
-            win_count: 0,
-            lose_count: 0
+            winCount: 0,
+            loseCount: 0
         },
         friendmatch: {
             title: '戦友',
-            win_count: 0,
-            lose_count: 0
+            winCount: 0,
+            loseCount: 0
         },
         giyuload: {
             title: '義勇',
-            win_count: 0,
-            lose_count: 0
+            winCount: 0,
+            loseCount: 0
         },
         event: {
             title: '統一',
-            win_count: 0,
-            lose_count: 0
+            winCount: 0,
+            loseCount: 0
         }
     }
 
-    var error_msg = "";
-    var days = [];
+    if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
+        alert(`キャンセルしました\n${scriptVersion}`);
+        return;
+    }
 
     function setDays() {
         var d = $("[class^='calendar calendar_']").find('.play_day a');
@@ -95,11 +92,11 @@
         return d.promise();
     }
 
-    function updateLoading(now_count, max_count) {
+    function updateLoading(nowCount, maxCount) {
         var d = $.Deferred();
         setTimeout(function () {
             if ($("#bookmarklet_loading").length > 0) {
-                var per = (now_count / max_count * 100).toFixed(0);
+                var per = (nowCount / maxCount * 100).toFixed(0);
                 $("#bookmarklet_loading").find(".bookmarklet_loading_msg").text(`loading ${per}%`);
             }
             d.resolve();
@@ -129,24 +126,24 @@
         $.ajax({
             url: "https://3594t.net/members/history/" + day,
         }).done(function (data, status, xhr) {
-            var error_text = $(data).find('#container p').text();
+            var errorText = $(data).find('#container p').text();
 
-            if (error_text == "短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。") {
+            if (errorText == "短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。") {
                 return d.reject('短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。');
-            } else if (error_text == "不明なエラーが発生しました。") {
+            } else if (errorText == "不明なエラーが発生しました。") {
                 return d.reject('不明なエラーが発生しました。');
             }
 
             for (key in duels) {
-                var win_count = $(data).find(`.top_data_${key}record .data_count_win`).text();
-                var lose_count = $(data).find(`.top_data_${key}record .data_count_lose`).text();
+                var winCount = $(data).find(`.top_data_${key}record .data_count_win`).text();
+                var loseCount = $(data).find(`.top_data_${key}record .data_count_lose`).text();
 
-                if (win_count.length == 0 || lose_count.length == 0) {
+                if (winCount.length == 0 || loseCount.length == 0) {
                     return d.reject('項目の取得に失敗しました、しばらくしてからご利用ください。');
                 }
 
-                duels[key]['win_count'] += +(win_count);
-                duels[key]['lose_count'] += +(lose_count);
+                duels[key]['winCount'] += +(winCount);
+                duels[key]['loseCount'] += +(loseCount);
             }
             d.resolve(data);
         }).fail(function (data) {
@@ -174,11 +171,11 @@
     }).done(function () {
         var alert_text = "";
         for (key in duels) {
-            var win_count = duels[key]['win_count'];
-            var lose_count = duels[key]['lose_count'];
+            var winCount = duels[key]['winCount'];
+            var loseCount = duels[key]['loseCount'];
             var title = duels[key]['title'];
-            var win_per = win_count / (win_count + lose_count) * 100;
-            alert_text += `${title} 勝ち:${win_count} 負け:${lose_count} 勝率:${win_per.toFixed(1)}\n`;
+            var win_per = winCount / (winCount + loseCount) * 100;
+            alert_text += `${title} 勝ち:${winCount} 負け:${loseCount} 勝率:${win_per.toFixed(1)}\n`;
         }
         alert(alert_text);
     }).fail(function (e) {
