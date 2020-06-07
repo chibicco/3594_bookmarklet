@@ -1,12 +1,12 @@
-(function(f) {
-        s = document.createElement("script");
-        s.src = "//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js";
-        s.onload = function() {
-            f(jQuery.noConflict(true))
-        }
-        document.body.appendChild(s);
+(function (f) {
+    s = document.createElement("script");
+    s.src = "//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js";
+    s.onload = function () {
+        f(jQuery.noConflict(true))
     }
-)(function($, undefined) {
+    document.body.appendChild(s);
+}
+)(function ($, undefined) {
     var script_version = "script version 1.1.0"
 
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
@@ -42,7 +42,7 @@
 
     function setDays() {
         var d = $("[class^='calendar calendar_']").find('.play_day a');
-        d.each(function() {
+        d.each(function () {
             days.push($(this).attr('href').replace(/^\.\//, ''));
         });
     }
@@ -50,7 +50,7 @@
 
     function dispLoading() {
         var d = $.Deferred();
-        setTimeout(function() {
+        setTimeout(function () {
             var msg = 'loading';
             var dispMsg = "<div class='bookmarklet_loading_msg'>" + msg + "</div>";
 
@@ -97,7 +97,7 @@
 
     function updateLoading(now_count, max_count) {
         var d = $.Deferred();
-        setTimeout(function() {
+        setTimeout(function () {
             if ($("#bookmarklet_loading").length > 0) {
                 var per = (now_count / max_count * 100).toFixed(0);
                 $("#bookmarklet_loading").find(".bookmarklet_loading_msg").text(`loading ${per}%`);
@@ -109,7 +109,7 @@
 
     function removeLoading() {
         var d = $.Deferred();
-        setTimeout(function() {
+        setTimeout(function () {
             $("#bookmarklet_loading").remove();
             d.resolve();
         }, 500);
@@ -118,7 +118,7 @@
 
     function wait(msec) {
         var d = new $.Deferred();
-        setTimeout(function() {
+        setTimeout(function () {
             d.resolve(msec);
         }, msec);
         return d.promise();
@@ -128,7 +128,7 @@
         var d = new $.Deferred();
         $.ajax({
             url: "https://3594t.net/members/history/" + day,
-        }).done(function(data, status, xhr) {
+        }).done(function (data, status, xhr) {
             var error_text = $(data).find('#container p').text();
 
             if (error_text == "短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。") {
@@ -149,29 +149,29 @@
                 duels[key]['lose_count'] += +(lose_count);
             }
             d.resolve(data);
-        }).fail(function(data) {
+        }).fail(function (data) {
             return d.reject("取得に失敗しました、しばらくしてからご利用ください。");
         });
         return d.promise();
     }
 
     var execute = $.Deferred();
-    var deferred = execute.then(function() {
+    var deferred = execute.then(function () {
         dispLoading()
     });
     for (var i = 0; i < days.length; i++) {
-        deferred = deferred.then(function(i) {
-            return function() {
+        deferred = deferred.then(function (i) {
+            return function () {
                 return $.when(api(days[i]), updateLoading(i + 1, days.length), wait(2500));
             }
-        }(i)).done(function(data, b) {
+        }(i)).done(function (data, b) {
             console.log($(data).find('h2').text());
         });
     }
 
-    deferred.always(function() {
+    deferred.always(function () {
         removeLoading();
-    }).done(function() {
+    }).done(function () {
         var alert_text = "";
         for (key in duels) {
             var win_count = duels[key]['win_count'];
@@ -181,7 +181,7 @@
             alert_text += `${title} 勝ち:${win_count} 負け:${lose_count} 勝率:${win_per.toFixed(1)}\n`;
         }
         alert(alert_text);
-    }).fail(function(e) {
+    }).fail(function (e) {
         console.log(e);
         alert(e);
     });
