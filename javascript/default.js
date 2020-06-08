@@ -7,7 +7,7 @@
     document.body.appendChild(s);
 }
 )(function ($, undefined) {
-    var scriptVersion = "script version 1.1.0";
+    var scriptVersion = "script version 1.2.0";
     var duels = {
         nationwide: {
             title: '全国',
