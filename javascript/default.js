@@ -6,7 +6,7 @@
     }
     document.body.appendChild(s);
 }
-)(function ($, undefined) {
+)(function ($) {
     var scriptVersion = "script version 1.2.0";
     var duels = {
         nationwide: {
