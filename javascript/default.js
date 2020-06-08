@@ -225,7 +225,7 @@
             }
         }
 
-        $("#container").prepend("<div id='bookmarklet_result' class='frame01'>" + prepend_text + "<br></div>").css({ 'color': 'white' });
+        $("#container").prepend("<div id='bookmarklet_result' class='frame01'><span style='color:white;'>" + prepend_text + "<br></span></div>");
         alert("正常に終了しました。\nこのポップアップを閉じたあと、画面上部に表示されています。");
     }).fail(function (e) {
         console.log(e);
