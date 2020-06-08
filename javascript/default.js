@@ -33,6 +33,9 @@
     var yourPlayList = [];
     var yourPlayTotalDayCount = 0;
 
+    // 結果表示boxを削除しておく
+    $("#bookmarklet_result").remove();
+
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
         alert(`キャンセルしました\n${scriptVersion}`);
         return;
@@ -43,7 +46,8 @@
         var h = {
             title: '',
             class: '',
-            day_urls: []
+            day_urls: [],
+            duels: JSON.parse(JSON.stringify(duels)) // ディープコピーでduelsのテンプレートを設定、api内で詰め直す
         }
         // 2020年5月
         h['title'] = $(this).text();
@@ -136,7 +140,7 @@
         return d.promise();
     }
 
-    function api(day) {
+    function api(day, playListNumber) {
         var d = new $.Deferred();
         $.ajax({
             url: "https://3594t.net/members/history/" + day,
@@ -156,9 +160,8 @@
                 if (winCount.length == 0 || loseCount.length == 0) {
                     return d.reject('項目の取得に失敗しました、しばらくしてからご利用ください。');
                 }
-
-                duels[key]['winCount'] += +(winCount);
-                duels[key]['loseCount'] += +(loseCount);
+                yourPlayList[playListNumber]['duels'][key]['winCount'] += +(winCount);
+                yourPlayList[playListNumber]['duels'][key]['loseCount'] += +(loseCount);
             }
             d.resolve(data);
         }).fail(function (data) {
@@ -176,12 +179,12 @@
     for (var y = 0; y < yourPlayList.length; y++) {
         var days = yourPlayList[y]['day_urls'];
         for (var i = 0; i < days.length; i++) {
-            deferred = deferred.then(function (days, i) {
+            deferred = deferred.then(function (days, i, y) {
                 return function () {
                     yourPlayTotalDayCountNumerator++;
-                    return $.when(api(days[i]), updateLoading(yourPlayTotalDayCountNumerator, yourPlayTotalDayCount), wait(2500));
+                    return $.when(api(days[i], y), updateLoading(yourPlayTotalDayCountNumerator, yourPlayTotalDayCount), wait(2500));
                 }
-            }(days, i)).done(function (data, b) {
+            }(days, i, y)).done(function (data, b) {
                 console.log($(data).find('h2').text());
             });
         }
@@ -190,15 +193,40 @@
     deferred.always(function () {
         removeLoading();
     }).done(function () {
-        var alert_text = "";
+        // トータルの戦績
+        var prepend_text = "総合戦績<br>";
         for (key in duels) {
-            var winCount = duels[key]['winCount'];
-            var loseCount = duels[key]['loseCount'];
-            var title = duels[key]['title'];
-            var win_per = winCount / (winCount + loseCount) * 100;
-            alert_text += `${title} 勝ち:${winCount} 負け:${loseCount} 勝率:${win_per.toFixed(1)}\n`;
+            var winCount = 0;
+            var loseCount = 0;
+            var title = '';
+            var win_per = 0;
+            for (i in yourPlayList) {
+                winCount += yourPlayList[i]['duels'][key]['winCount'];
+                loseCount += yourPlayList[i]['duels'][key]['loseCount'];
+            }
+            title = yourPlayList[i]['duels'][key]['title'];
+            win_per = winCount / (winCount + loseCount) * 100;
+            prepend_text += `${title} 勝ち:${winCount} 負け:${loseCount} 勝率:${win_per.toFixed(1)}<br>`;
         }
-        alert(alert_text);
+
+        // 月毎の戦績
+        for (i in yourPlayList) {
+            prepend_text += `${yourPlayList[i]['title']}<br>`;
+            for (key in duels) {
+                var winCount = 0;
+                var loseCount = 0;
+                var title = '';
+                var win_per = 0;
+                winCount += yourPlayList[i]['duels'][key]['winCount'];
+                loseCount += yourPlayList[i]['duels'][key]['loseCount'];
+                title = yourPlayList[i]['duels'][key]['title'];
+                win_per = winCount / (winCount + loseCount) * 100;
+                prepend_text += `${title} 勝ち:${winCount} 負け:${loseCount} 勝率:${win_per.toFixed(1)}<br>`;
+            }
+        }
+
+        $("#container").prepend("<div id='bookmarklet_result' class='frame01'>" + prepend_text + "<br></div>").css({ 'color': 'white' });
+        alert("正常に終了しました。\nこのポップアップを閉じたあと、画面上部に表示されています。");
     }).fail(function (e) {
         console.log(e);
         alert(e);
