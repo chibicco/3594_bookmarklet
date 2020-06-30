@@ -75,8 +75,8 @@
                 $("#wrap").append("<div id='bookmarklet_loading'>" + dispMsg + "</div>");
 
                 var ua = navigator.userAgent;
-                var width = $(window).width();
-                var height = $(window).height();
+                var width = window.innerWidth;
+                var height = window.innerHeight;
                 if ((ua.indexOf('iPhone') > 0 || ua.indexOf('Android') > 0) && ua.indexOf('Mobile') > 0) {
                     // スマートフォン用処理
                     width = "200%";
