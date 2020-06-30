@@ -194,7 +194,9 @@
         removeLoading();
     }).done(function () {
         // トータルの戦績
-        var prepend_text = "総合戦績<br>";
+        var prepend_text = '<div class="frame01"><div class="frame01_top"></div><div class="title2">総合戦績</div><div class="statistics_data">';
+        prepend_text += '<table class="statistics_ability_table">'
+        prepend_text += '<tbody><tr><th>種別</th><th>勝ち/負け</th><th>勝率</th></tr>'
         for (key in duels) {
             var winCount = 0;
             var loseCount = 0;
@@ -206,12 +208,16 @@
             }
             title = yourPlayList[i]['duels'][key]['title'];
             win_per = winCount / (winCount + loseCount) * 100;
-            prepend_text += `${title} 勝ち:${winCount} 負け:${loseCount} 勝率:${win_per.toFixed(1)}<br>`;
+            prepend_text += `<tr><td>${title}</td><td>${winCount}/${loseCount}</td><td>${win_per.toFixed(1)}</td></tr>`;
         }
+        prepend_text += '</table>'
+        prepend_text += '</div><div class="frame01_bottom"></div></div>'
 
         // 月毎の戦績
         for (i in yourPlayList) {
-            prepend_text += `${yourPlayList[i]['title']}<br>`;
+            prepend_text += `<div class="frame01"><div class="frame01_top"></div><div class="title2">${yourPlayList[i]['title']}</div><div class="statistics_data">`;
+            prepend_text += '<table class="statistics_ability_table">'
+            prepend_text += '<tbody><tr><th>種別</th><th>勝ち/負け</th><th>勝率</th></tr>'
             for (key in duels) {
                 var winCount = 0;
                 var loseCount = 0;
@@ -221,11 +227,13 @@
                 loseCount += yourPlayList[i]['duels'][key]['loseCount'];
                 title = yourPlayList[i]['duels'][key]['title'];
                 win_per = winCount / (winCount + loseCount) * 100;
-                prepend_text += `${title} 勝ち:${winCount} 負け:${loseCount} 勝率:${win_per.toFixed(1)}<br>`;
+                prepend_text += `<tr><td>${title}</td><td>${winCount}/${loseCount}</td><td>${win_per.toFixed(1)}</td></tr>`;
             }
+            prepend_text += '</table>'
+            prepend_text += '</div><div class="frame01_bottom"></div></div>'
         }
 
-        $("#container").prepend("<div id='bookmarklet_result' class='frame01'><span style='color:white;'>" + prepend_text + "<br></span></div>");
+        $("#container").prepend("<span id='bookmarklet_result'>" + prepend_text + "<br></span>");
         alert("正常に終了しました。\nこのポップアップを閉じたあと、画面上部に表示されています。");
     }).fail(function (e) {
         console.log(e);
