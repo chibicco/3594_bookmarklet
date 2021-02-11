@@ -7,65 +7,200 @@
     document.body.appendChild(s);
 }
 )(function ($) {
-    var scriptVersion = "script version 1.2.0";
-    var duels = {
-        nationwide: {
-            title: '全国',
-            winCount: 0,
-            loseCount: 0
-        },
-        friendmatch: {
-            title: '戦友',
-            winCount: 0,
-            loseCount: 0
-        },
-        giyuload: {
-            title: '義勇',
-            winCount: 0,
-            loseCount: 0
-        },
-        event: {
-            title: '統一',
-            winCount: 0,
-            loseCount: 0
-        }
-    };
-    var yourPlayList = [];
-    var yourPlayTotalDayCount = 0;
-
-    // 結果表示boxを削除しておく
-    $("#bookmarklet_result").remove();
-
     if (!confirm('集計を開始しますか？\n1~2分かかります、処理中はページを開いたままにしてください。\nまた、利用後はタブを閉じるようお願いします。')) {
-        alert(`キャンセルしました\n${scriptVersion}`);
+        alert('キャンセルしました、ScriptVersion: 3.5.0A');
         return;
     }
-
-    // 月毎に対象日を取得する
-    $('#history').find('.title_calendar').each(function (e) {
-        var h = {
-            title: '',
-            class: '',
-            day_urls: [],
-            duels: JSON.parse(JSON.stringify(duels)) // ディープコピーでduelsのテンプレートを設定、api内で詰め直す
+    class ComprehensiveRecord {
+        constructor() {
+            this.data = [];
         }
-        // 2020年5月
-        h['title'] = $(this).text();
-        // calendar_202005 classの取得
-        h['class'] = $(this).parent().parent().children(".calendar").attr("class").split(' ').pop();
 
-        var play_days = $(this).parent().parent().children(".calendar").find('.play_day a');
-        play_days.each(function () {
-            // daily?y=2020&m=5&d=24
-            h['day_urls'].push($(this).attr('href').replace(/^\.\//, ''));
-            yourPlayTotalDayCount++;
-        });
+        add(monthlyRecord) {
+            this.data.push(monthlyRecord);
+        }
 
-        yourPlayList.push(h);
-    });
+        totalAggregateByTitle() {
+            let _totalAggregateByTitleData = {};
+
+            for (let [_, monthlyRecord] of Object.entries(this.data)) {
+                for (let [title, value] of Object.entries(monthlyRecord.aggregateByTitle())) {
+                    if (!_totalAggregateByTitleData[title]) { _totalAggregateByTitleData[title] = {} }
+                    for (let [issue, count] of Object.entries(value)) {
+                        if (!_totalAggregateByTitleData[title][issue]) { _totalAggregateByTitleData[title][issue] = 0 }
+                        _totalAggregateByTitleData[title][issue] += count;
+                    }
+                }
+            }
+
+            return _totalAggregateByTitleData;
+        }
+    }
+    class MonthlyRecord {
+        // title_calendar: 2021年1月, 2021年2月
+        constructor(title_calendar) {
+            this.title_calendar = title_calendar;
+            this.winCount = 0;
+            this.loseCount = 0;
+            this.drawCount = 0;
+            this.totalCount = 0;
+            this.data = [];
+        }
+
+        append(battleListRecord) {
+            this.data.push(battleListRecord);
+        }
+
+        // {
+        //      daily?y=2021&m=2&d=1:
+        //          { 全国対戦戦績:
+        //              { winCount: 4, loseCount: 2, drawCount: 0, totalCount: 6} }
+        //          { 戦友対戦戦績:
+        //              { winCount: 1, loseCount: 1, drawCount: 0, totalCount: 2} }
+        // }
+        getDailies() {
+            let _getDailiesData = {};
+
+            for (let [_k, battleListRecord] of Object.entries(this.data)) {
+                for (let [daily, data] of Object.entries(battleListRecord.data)) {
+                    _getDailiesData[daily] = data;
+                    for (let [title, value] of Object.entries(data)) {
+                    }
+                }
+            }
+
+            return _getDailiesData;
+        }
+
+        aggregateByTitle() {
+            let _aggregateByTitleData = {};
+
+            for (let [_daily, data] of Object.entries(this.getDailies())) {
+                for (let [title, value] of Object.entries(data)) {
+                    if (!_aggregateByTitleData[title]) { _aggregateByTitleData[title] = {} }
+                    for (let [issue, count] of Object.entries(value)) {
+                        if (!_aggregateByTitleData[title][issue]) { _aggregateByTitleData[title][issue] = 0 }
+                        _aggregateByTitleData[title][issue] += count;
+                    }
+                }
+            }
+
+            return _aggregateByTitleData;
+        }
+    }
+    class BattleListRecord {
+        // daily: daily?y=2021&m=2&d=1
+        constructor(daily) {
+            this.daily = daily;
+            this.data = {};
+        }
+
+        append(lineRecordBlock) {
+            let r = lineRecordBlock;
+
+            if (!this.data[this.daily]) { this.data[this.daily] = {}; }
+            if (!this.data[this.daily][r.title]) { this.data[this.daily][r.title] = {}; }
+
+            this.data[this.daily][r.title] = {
+                winCount: r.winCount,
+                loseCount: r.loseCount,
+                drawCount: r.drawCount,
+                totalCount: r.totalCount,
+            }
+        }
+    }
+    class LineRecordBlock {
+        // title: 全国対戦戦績, 戦友対戦戦績, 武練の章戦績, 義勇ロード戦績, 店内対戦戦績
+        constructor(title) {
+            this.title = title;
+            this.winCount = 0;
+            this.loseCount = 0;
+            this.drawCount = 0;
+            this.totalCount = 0;
+        }
+
+        setCountByAlt(alt, count) {
+            if (alt == '勝') {
+                this.winCount = Number(count);
+            } else if (alt == '敗') {
+                this.loseCount = Number(count);
+            } else if (alt == '分') {
+                this.drawCount = Number(count);
+            } else if (alt == '戦') {
+                this.totalCount = Number(count);
+            }
+        }
+    }
+    class ResultHtml {
+        constructor(comprehensiveRecord) {
+            this.comprehensive = comprehensiveRecord;
+        }
+
+        generate() {
+            return this.totalBattleHtml() + this.monthsBattleHtml();
+        }
+
+        totalBattleHtml() {
+            let innerHtml = '<div class="frame01"><div class="frame01_top"></div><div class="title2">総合戦績</div><div class="statistics_data">';
+            innerHtml += '<table class="statistics_ability_table">'
+            innerHtml += '<tbody><tr><th>種別</th><th>勝ち/負け</th><th>勝率</th></tr>'
+
+            for (let [title, value] of Object.entries(this.comprehensive.totalAggregateByTitle())) {
+                var calc = new VCalc(value);
+                innerHtml += `<tr><td>${title}</td><td>${calc.winCount}/${calc.loseCount}</td><td>${calc.winPer()}</td></tr>`;
+            }
+
+            innerHtml += '</table>'
+            innerHtml += '</div><div class="frame01_bottom"></div></div>'
+
+            return innerHtml;
+        }
+
+        monthsBattleHtml() {
+            let innerHtml = '';
+
+            for (let [_, monthlyRecord] of Object.entries(this.comprehensive.data)) {
+                innerHtml += `<div class="frame01"><div class="frame01_top"></div><div class="title2">${monthlyRecord.title_calendar}</div><div class="statistics_data">`;
+                innerHtml += '<table class="statistics_ability_table">'
+                innerHtml += '<tbody><tr><th>種別</th><th>勝ち/負け</th><th>勝率</th></tr>'
+
+                for (let [title, value] of Object.entries(monthlyRecord.aggregateByTitle())) {
+                    var calc = new VCalc(value);
+                    innerHtml += `<tr><td>${title}</td><td>${calc.winCount}/${calc.loseCount}</td><td>${calc.winPer()}</td></tr>`;
+                }
+
+                innerHtml += '</table>'
+                innerHtml += '</div><div class="frame01_bottom"></div></div>'
+            }
+
+            return innerHtml;
+        }
+    }
+    class VCalc {
+        constructor(value) {
+            this.winCount = value['winCount'];
+            this.loseCount = value['loseCount'];
+            this.drawCount = value['drawCount'];
+            this.totalCount = value['totalCount'];
+        }
+
+        winPer(fixedNum = 1) {
+            let _winPer = this.winCount / (this.winCount + this.loseCount) * 100;
+            return _winPer.toFixed(fixedNum);
+        }
+    }
+
+    function refreshResultHtml() {
+        var d = new $.Deferred();
+        setTimeout(function () {
+            $("#bookmarklet_result").remove();
+            d.resolve();
+        }, 0);
+        return d.promise();
+    }
 
     function dispLoading() {
-        var d = $.Deferred();
+        var d = new $.Deferred();
         setTimeout(function () {
             var msg = 'loading';
             var dispMsg = "<div class='bookmarklet_loading_msg'>" + msg + "</div>";
@@ -112,7 +247,7 @@
     }
 
     function updateLoading(nowCount, maxCount) {
-        var d = $.Deferred();
+        var d = new $.Deferred();
         setTimeout(function () {
             if ($("#bookmarklet_loading").length > 0) {
                 var per = (nowCount / maxCount * 100).toFixed(0);
@@ -124,7 +259,7 @@
     }
 
     function removeLoading() {
-        var d = $.Deferred();
+        var d = new $.Deferred();
         setTimeout(function () {
             $("#bookmarklet_loading").remove();
             d.resolve();
@@ -132,113 +267,95 @@
         return d.promise();
     }
 
-    function wait(msec) {
+    function wait(milliseconds = 2000) {
         var d = new $.Deferred();
-        setTimeout(function () {
-            d.resolve(msec);
-        }, msec);
+        setTimeout(function() {
+            console.log("waiting " + milliseconds + " milliseconds");
+            d.resolve();
+        }, milliseconds);
         return d.promise();
     }
 
-    function api(day, playListNumber) {
+    function callApi(monthlyRecord, daily) {
         var d = new $.Deferred();
+
         $.ajax({
-            url: "https://3594t.net/members/history/" + day,
+            url: "https://3594t.net/members/history/" + daily,
         }).done(function (data, status, xhr) {
-            var errorText = $(data).find('#container p').text();
+            console.log(daily);
+            playDayNowCount++;
 
-            if (errorText == "短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。") {
-                return d.reject('短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。');
-            } else if (errorText == "不明なエラーが発生しました。") {
-                return d.reject('不明なエラーが発生しました。');
+            if (xhr.status !== 200) {
+                return d.reject('サーバの応答が停止しました、時間を置いてから実行してください。');
             }
 
-            for (key in duels) {
-                var winCount = $(data).find(`.top_data_${key}record .data_count_win`).text();
-                var loseCount = $(data).find(`.top_data_${key}record .data_count_lose`).text();
-
-                if (winCount.length == 0 || loseCount.length == 0) {
-                    return d.reject('項目の取得に失敗しました、しばらくしてからご利用ください。');
-                }
-                yourPlayList[playListNumber]['duels'][key]['winCount'] += +(winCount);
-                yourPlayList[playListNumber]['duels'][key]['loseCount'] += +(loseCount);
+            if (status !== 'success') {
+                return d.reject('不明なステータスを受信しました、時間を置いてから実行してください。');
             }
-            d.resolve(data);
+
+            let battleListRecord = new BattleListRecord(daily);
+            $(data).find(".line_record_block").each(function (i, element) {
+                var lineRecordBlock = new LineRecordBlock($(element).find('img').attr('alt'));
+
+                $(element).find('.count').each(function (i, element) {
+                    var count_alt = $(element).find('img').attr('alt'); // 戦, 勝, 敗, 分
+                    var count_value = $(element).text();
+                    lineRecordBlock.setCountByAlt(count_alt, count_value);
+                });
+
+                battleListRecord.append(lineRecordBlock);
+            });
+
+            monthlyRecord.append(battleListRecord);
+
+            d.resolve();
         }).fail(function (data) {
-            return d.reject("取得に失敗しました、しばらくしてからご利用ください。");
+            return d.reject('取得に失敗しました、時間を置いてから実行してください。');
         });
+
         return d.promise();
     }
 
-    var execute = $.Deferred();
-    var deferred = execute.then(function () {
-        dispLoading()
+    let debugMode = false;
+    let deferred = wait(0);
+    let comprehensiveRecord = new ComprehensiveRecord();
+    let playDayNowCount = 1;
+    let playDayAllCount = $("[class$='play_day']").length;
+
+    deferred.then(function() {
+        return $.when(refreshResultHtml(), dispLoading());
     });
 
-    var yourPlayTotalDayCountNumerator = 0;
-    for (var y = 0; y < yourPlayList.length; y++) {
-        var days = yourPlayList[y]['day_urls'];
-        for (var i = 0; i < days.length; i++) {
-            deferred = deferred.then(function (days, i, y) {
-                return function () {
-                    yourPlayTotalDayCountNumerator++;
-                    return $.when(api(days[i], y), updateLoading(yourPlayTotalDayCountNumerator, yourPlayTotalDayCount), wait(2500));
-                }
-            }(days, i, y)).done(function (data, b) {
-                console.log($(data).find('h2').text());
+    $('#history').find("[class^='calendar calendar_']").each(function (i, element) {
+        if (i != 0 && debugMode ) { return; }
+        var monthlyRecord = new MonthlyRecord($(element).prev().find('.title_calendar').text());
+
+        $(this).find("[class$='play_day']").each(function (i, element) {
+            if (i != 0 && debugMode ) { return; }
+
+            // daily?y=2021&m=1&d=16
+            var daily = $(element).find('a').attr('href').replace(/^\.\//, '');
+
+            deferred = deferred.then(function() {
+                return $.when(callApi(monthlyRecord, daily), updateLoading(playDayNowCount, playDayAllCount), wait(2500));
             });
-        }
-    }
+        });
+
+        comprehensiveRecord.add(monthlyRecord);
+    });
+
+    deferred.then(function() {
+        return removeLoading();
+    });
 
     deferred.always(function () {
-        removeLoading();
+        console.log("Always ：）");
+        let resultHtml = new ResultHtml(comprehensiveRecord);
+        $("#container").prepend("<span id='bookmarklet_result'>" + resultHtml.generate() + "<br></span>");
     }).done(function () {
-        // トータルの戦績
-        var prepend_text = '<div class="frame01"><div class="frame01_top"></div><div class="title2">総合戦績</div><div class="statistics_data">';
-        prepend_text += '<table class="statistics_ability_table">'
-        prepend_text += '<tbody><tr><th>種別</th><th>勝ち/負け</th><th>勝率</th></tr>'
-        for (key in duels) {
-            var winCount = 0;
-            var loseCount = 0;
-            var title = '';
-            var win_per = 0;
-            for (i in yourPlayList) {
-                winCount += yourPlayList[i]['duels'][key]['winCount'];
-                loseCount += yourPlayList[i]['duels'][key]['loseCount'];
-            }
-            title = yourPlayList[i]['duels'][key]['title'];
-            win_per = winCount / (winCount + loseCount) * 100;
-            prepend_text += `<tr><td>${title}</td><td>${winCount}/${loseCount}</td><td>${win_per.toFixed(1)}</td></tr>`;
-        }
-        prepend_text += '</table>'
-        prepend_text += '</div><div class="frame01_bottom"></div></div>'
-
-        // 月毎の戦績
-        for (i in yourPlayList) {
-            prepend_text += `<div class="frame01"><div class="frame01_top"></div><div class="title2">${yourPlayList[i]['title']}</div><div class="statistics_data">`;
-            prepend_text += '<table class="statistics_ability_table">'
-            prepend_text += '<tbody><tr><th>種別</th><th>勝ち/負け</th><th>勝率</th></tr>'
-            for (key in duels) {
-                var winCount = 0;
-                var loseCount = 0;
-                var title = '';
-                var win_per = 0;
-                winCount += yourPlayList[i]['duels'][key]['winCount'];
-                loseCount += yourPlayList[i]['duels'][key]['loseCount'];
-                title = yourPlayList[i]['duels'][key]['title'];
-                win_per = winCount / (winCount + loseCount) * 100;
-                prepend_text += `<tr><td>${title}</td><td>${winCount}/${loseCount}</td><td>${win_per.toFixed(1)}</td></tr>`;
-            }
-            prepend_text += '</table>'
-            prepend_text += '</div><div class="frame01_bottom"></div></div>'
-        }
-
-        $("#container").prepend("<span id='bookmarklet_result'>" + prepend_text + "<br></span>");
-        alert("正常に終了しました。\nこのポップアップを閉じたあと、画面上部に表示されています。");
+        console.log("Done ；）");
     }).fail(function (e) {
-        console.log(e);
+        console.log("Fail ：’）");
         alert(e);
     });
-
-    execute.resolve();
 });
