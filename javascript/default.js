@@ -283,7 +283,12 @@
             url: "https://3594t.net/members/history/" + daily,
         }).done(function (data, status, xhr) {
             console.log(daily);
+
             playDayNowCount++;
+
+            if ($(data).find('#container p').text() == "短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。") {
+                return d.reject('短時間に多数のアクセスがあった為、一時的にご利用を制限しております。しばらくお待ちください。');
+            }
 
             if (xhr.status !== 200) {
                 return d.reject('サーバの応答が停止しました、時間を置いてから実行してください。');
