@@ -349,16 +349,13 @@
         comprehensiveRecord.add(monthlyRecord);
     });
 
-    deferred.then(function() {
-        return removeLoading();
-    });
-
     deferred.always(function () {
         console.log("Always ：）");
-        let resultHtml = new ResultHtml(comprehensiveRecord);
-        $("#container").prepend("<span id='bookmarklet_result'>" + resultHtml.generate() + "<br></span>");
+        removeLoading();
     }).done(function () {
         console.log("Done ；）");
+        let resultHtml = new ResultHtml(comprehensiveRecord);
+        $("#container").prepend("<span id='bookmarklet_result'>" + resultHtml.generate() + "<br></span>");
     }).fail(function (e) {
         console.log("Fail ：’）");
         alert(e);
