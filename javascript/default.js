@@ -246,12 +246,18 @@
         return d.promise();
     }
 
-    function updateLoading(nowCount, maxCount) {
+    // daily?y=2021&m=2&d=4 → 2021年2月4日
+    function daily2humanize(daily) {
+        let matched = daily.match(/daily\?y=(\d+)&m=(\d+)&d=(\d+)/);
+        return `${matched[1]}年${matched[2]}月${matched[3]}日`;
+    }
+
+    function updateLoading(daily, nowCount, maxCount) {
         var d = new $.Deferred();
         setTimeout(function () {
             if ($("#bookmarklet_loading").length > 0) {
                 var per = (nowCount / maxCount * 100).toFixed(0);
-                $("#bookmarklet_loading").find(".bookmarklet_loading_msg").text(`loading ${per}%`);
+                $("#bookmarklet_loading").find(".bookmarklet_loading_msg").html(`${per}%<br>${daily2humanize(daily)}取得中`);
             }
             d.resolve();
         }, 20);
@@ -342,7 +348,7 @@
             var daily = $(element).find('a').attr('href').replace(/^\.\//, '');
 
             deferred = deferred.then(function() {
-                return $.when(callApi(monthlyRecord, daily), updateLoading(playDayNowCount, playDayAllCount), wait(2500));
+                return $.when(callApi(monthlyRecord, daily), updateLoading(daily, playDayNowCount, playDayAllCount), wait(2500));
             });
         });
 
